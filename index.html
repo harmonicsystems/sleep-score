@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sleep Score in E♭</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one night-sky column. The chart is the score; controls sit under it like a mixing desk. Single dark theme by choice. */
+:root{
+  color-scheme: dark;
+  --night:#0f1220; --panel:#171b2e; --line:#2a3050;
+  --ink:#e8e7f3; --muted:#9296b4; --moon:#f3d9a4;
+  --deep:#4340b8; --core:#4a8cf0; --rem:#84d6f6; --awake:#ee7f60;
+  --display:"Newsreader", Georgia, serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--night);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px;display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--display);font-weight:400;font-size:34px;line-height:1.05;margin:0;text-wrap:balance}
+h1 em{color:var(--moon)}
+h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0}
+p{margin:0}
+.lede{color:var(--muted);max-width:60ch}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.seg{display:flex;gap:4px;background:var(--night);border:1px solid var(--line);border-radius:10px;padding:3px;flex-wrap:wrap}
+.seg button{flex:1 1 auto;min-height:38px;padding:6px 10px;border:0;border-radius:7px;background:transparent;color:var(--muted);font:500 14px var(--body);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--line);color:var(--ink)}
+button:focus-visible,select:focus-visible,input:focus-visible,canvas:focus-visible{outline:2px solid var(--moon);outline-offset:2px}
+.transport{display:flex;gap:12px;align-items:center}
+#play{flex:0 0 auto;min-width:112px;min-height:48px;border-radius:24px;border:0;background:var(--moon);color:#1a1608;font:600 16px var(--body);cursor:pointer}
+#now{flex:1;min-width:0;font-variant-numeric:tabular-nums}
+#now b{display:block;font-family:var(--display);font-weight:400;font-size:21px;line-height:1.15}
+#now span{color:var(--muted);font-size:13px}
+canvas{display:block;width:100%;height:360px;border-radius:10px;touch-action:manipulation}
+.nights{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-right:46px}
+.nights button{min-height:36px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--muted);font:500 14px var(--body);cursor:pointer;font-variant-numeric:tabular-nums}
+.nights button[aria-pressed="true"]{border-color:var(--moon);color:var(--moon)}
+#stats{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+#stats strong{color:var(--ink);font-weight:500}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:420px){.grid2{grid-template-columns:1fr}}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--muted)}
+label.f output{color:var(--ink);font-variant-numeric:tabular-nums}
+.row{display:flex;justify-content:space-between;gap:8px}
+select{width:100%;min-height:40px;border-radius:8px;border:1px solid var(--line);background:var(--night);color:var(--ink);font:400 15px var(--body);padding:6px 8px}
+input[type=range]{width:100%;accent-color:var(--moon);min-height:28px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+.check input{width:20px;height:20px;accent-color:var(--moon);flex:0 0 auto;margin-top:1px}
+.check small{display:block;color:var(--muted)}
+.stage{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.stage:first-of-type{border-top:0;padding-top:0}
+.stage header{display:flex;align-items:center;gap:8px;font-weight:500}
+.sw{width:14px;height:14px;border-radius:4px;flex:0 0 auto}
+.stage header span.n{margin-left:auto;color:var(--muted);font-weight:400;font-size:13px}
+.three{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:8px}
+.note{color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<main>
+  <header style="display:flex;flex-direction:column;gap:8px">
+    <h1>Sleep Score in <em>E♭</em></h1>
+    <p class="lede">Seven nights, cut into even steps. Each step takes one sleep stage, and each stage sings in its own register over an E♭ drone.</p>
+  </header>
+
+  <section class="panel" aria-label="Score">
+    <div class="seg" role="group" aria-label="Reading">
+      <button type="button" id="m-night" data-mode="night" aria-pressed="true">One night</button>
+      <button type="button" id="m-journey" data-mode="journey" aria-pressed="false">Week journey</button>
+      <button type="button" id="m-choir" data-mode="choir" aria-pressed="false">Week choir</button>
+    </div>
+    <p class="note" id="modeNote"></p>
+    <div class="transport">
+      <button type="button" id="play">Play</button>
+      <div id="now" aria-live="off"><b id="nowNote">E♭</b><span id="nowSub">Ready</span></div>
+    </div>
+    <canvas id="chart" tabindex="0" aria-label="Sleep stages for seven nights, quantized into steps. Use the night buttons below to choose a night."></canvas>
+    <div class="nights" id="nights" role="group" aria-label="Choose a night"></div>
+    <p id="stats"></p>
+  </section>
+
+  <section class="panel" aria-label="How the bars become values">
+    <h2>Reading the bars</h2>
+    <div class="grid2">
+      <label class="f" for="bin">Step size
+        <select id="bin">
+          <option value="5">5 minutes</option>
+          <option value="10" selected>10 minutes</option>
+          <option value="15">15 minutes</option>
+          <option value="30">30 minutes</option>
+        </select>
+      </label>
+      <label class="f" for="rule">Each step takes
+        <select id="rule">
+          <option value="dominant" selected>the stage that fills most of it</option>
+          <option value="lightest">the lightest stage in it</option>
+          <option value="deepest">the deepest stage in it</option>
+        </select>
+      </label>
+      <label class="f" for="awakeMode">Awake sounds as
+        <select id="awakeMode">
+          <option value="bell" selected>a soft bell</option>
+          <option value="breath">a breath of air</option>
+          <option value="rest">silence</option>
+        </select>
+      </label>
+      <label class="f" for="stepLen"><span class="row"><span>Seconds per step</span><output id="stepLenO"></output></span>
+        <input type="range" id="stepLen" min="0.25" max="3" step="0.05" value="0.9">
+      </label>
+    </div>
+    <label class="check" for="trend"><input type="checkbox" id="trend" checked>
+      <span>Let each night's totals color its sound<small>More REM than the week's other nights makes a brighter tone. More deep sleep makes a fuller drone.</small></span>
+    </label>
+    <label class="check" for="loop"><input type="checkbox" id="loop">
+      <span>Loop until I stop it</span>
+    </label>
+  </section>
+
+  <section class="panel" aria-label="Sound">
+    <h2>Sound</h2>
+    <div class="grid2">
+      <label class="f" for="scale">Notes drawn from
+        <select id="scale">
+          <option value="pent" selected>E♭ major pentatonic</option>
+          <option value="harm">Overtones of E♭ (just intonation)</option>
+          <option value="lyd">E♭ Lydian</option>
+          <option value="mixo">E♭ Mixolydian</option>
+          <option value="dor">E♭ Dorian</option>
+        </select>
+      </label>
+      <label class="f" for="rootOct">Drone root
+        <select id="rootOct">
+          <option value="2" selected>E♭2 (78 Hz)</option>
+          <option value="3">E♭3 (156 Hz)</option>
+        </select>
+      </label>
+      <label class="f" for="timbre">Voice
+        <select id="timbre">
+          <option value="pure" selected>Pure</option>
+          <option value="reed">Reed</option>
+          <option value="hollow">Hollow</option>
+        </select>
+      </label>
+      <label class="f" for="bright"><span class="row"><span>Brightness</span><output id="brightO"></output></span>
+        <input type="range" id="bright" min="300" max="6000" step="50" value="1800">
+      </label>
+      <label class="f" for="drone"><span class="row"><span>Drone</span><output id="droneO"></output></span>
+        <input type="range" id="drone" min="0" max="1" step="0.01" value="0.5">
+      </label>
+      <label class="f" for="verb"><span class="row"><span>Reverb</span><output id="verbO"></output></span>
+        <input type="range" id="verb" min="0" max="1" step="0.01" value="0.55">
+      </label>
+    </div>
+    <p class="note">No sound on an iPhone? Flip the silent switch off. Low E♭2 needs headphones or a speaker to be felt.</p>
+  </section>
+
+  <section class="panel" aria-label="Stage voices">
+    <h2>What each stage plays</h2>
+    <div id="stages"></div>
+  </section>
+
+  <p class="note">Stage times were traced by eye from your screenshot, so they are close, not exact. The melody inside a stage rises and falls on a 90-minute wave, about one sleep cycle.</p>
+</main>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- data: traced from the screenshot (y pixels; 9 PM = 37, 118.6 px per 2 h) ---------- */
+var RAW = [
+ "119 C136 A145 C162 D189 A192 C250 A252 C279 R305 C345 A355 R375 C413 D433 C438 R475 C512 R523",
+ "89 C106 D127 C140 D145 C155 R163 C191 D232 R263 C320 A325 R361 C411 D420 A424 C429 R468",
+ "150 C171 D188 C192 D218 R237 C260 D308 C313 R329 C336 A341 C373 D392 R430 C497 R510 C531",
+ "115 C132 D147 C150 D179 C200 D238 C268 R297 C345 D352 C360 R379 C411 A495 C543 R565",
+ "98 C118 D157 R182 C194 D197 C211 D225 C246 D268 R292 C349 D355 R376 A382 R408 A413 R425 C481 D484 A490 R526",
+ "124 C148 D174 A179 C208 R212 C228 D263 C274 A277 R300 C332 D347 A354 C362 A368 R397 C407 A410 C440 D447 C456 R512 C526 A528 C558 D573",
+ "82 C88 A93 C114 D134 C138 A144 C178 D187 C208 A211 C233 D262 R306 C350 D358 R372 C381 A385 C406 A409 C438 A445 R473 A479 C535 R550"
+];
+function y2m(y){ return (y-37)*120/118.6; }           // minutes after 9 PM
+var nights = RAW.map(function(str){
+  var p = str.split(" "), a = y2m(+p[0]), segs = [], tot = {D:0,C:0,R:0,A:0};
+  for (var i=1;i<p.length;i++){ var s=p[i][0], b=y2m(+p[i].slice(1)); segs.push({s:s,a:a,b:b}); tot[s]+=b-a; a=b; }
+  var asleep = tot.D+tot.C+tot.R;
+  return {segs:segs, start:segs[0].a, end:a, tot:tot, asleep:asleep, deep:tot.D/asleep, rem:tot.R/asleep};
+});
+function norm(key){ var v=nights.map(function(n){return n[key];}), lo=Math.min.apply(0,v), hi=Math.max.apply(0,v);
+  return v.map(function(x){ return hi>lo ? (x-lo)/(hi-lo) : .5; }); }
+var remN = norm("rem"), deepN = norm("deep");
+
+var STAGE = {
+  D:{name:"Deep",  color:"#4340b8", reg:0, motion:0,  level:.9},
+  C:{name:"Core",  color:"#4a8cf0", reg:1, motion:30, level:.7},
+  R:{name:"REM",   color:"#84d6f6", reg:2, motion:15, level:.6},
+  A:{name:"Awake", color:"#ee7f60", reg:3, motion:30, level:.4}
+};
+var ORDER = ["D","C","R","A"];
+var SCALES = {
+  pent:[0,2,4,7,9].map(et), lyd:[0,2,4,6,7,9,11].map(et), mixo:[0,2,4,5,7,9,10].map(et), dor:[0,2,3,5,7,9,10].map(et),
+  harm:[1,9/8,5/4,11/8,3/2,13/8,7/4,15/8]
+};
+function et(s){ return Math.pow(2,s/12); }
+var NAMES = ["E♭","E","F","G♭","G","A♭","A","B♭","B","C","D♭","D"];
+
+var S = {mode:"night", night:0, bin:10, rule:"dominant", awakeMode:"bell", step:.9, trend:true, loop:false,
+         scale:"pent", rootOct:2, timbre:"pure", bright:1800, drone:.5, verb:.55};
+
+/* ---------- quantize: bars -> discrete steps ---------- */
+var Q = [], lanes = [], total = 0, T0 = 0;
+function quantize(n){
+  var bin=S.bin, cells=[], t=Math.floor(n.start/bin)*bin, thr=Math.max(1.5,bin*.15);
+  for (; t<n.end; t+=bin){
+    var m={D:0,C:0,R:0,A:0}, sum=0;
+    n.segs.forEach(function(g){ var o=Math.min(g.b,t+bin)-Math.max(g.a,t); if(o>0){m[g.s]+=o;sum+=o;} });
+    if (sum < bin*.25) continue;
+    var pick=null, i;
+    if (S.rule==="dominant"){ ORDER.forEach(function(k){ if(pick===null||m[k]>m[pick]) pick=k; }); }
+    else { var ord = S.rule==="lightest" ? ["A","R","C","D"] : ["D","C","R","A"];
+      for(i=0;i<4&&!pick;i++) if(m[ord[i]]>=thr) pick=ord[i];
+      if(!pick) ORDER.forEach(function(k){ if(pick===null||m[k]>m[pick]) pick=k; }); }
+    cells.push({t:t,s:pick});
+  }
+  return cells;
+}
+function build(){
+  Q = nights.map(quantize); lanes=[]; total=0;
+  if (S.mode==="night"){ lanes=[{n:S.night,off:0}]; total=Q[S.night].length; }
+  else if (S.mode==="journey"){ var off=0, gap=Math.max(2,Math.round(30/S.bin));
+    Q.forEach(function(c,n){ lanes.push({n:n,off:off}); off+=c.length+gap; }); total=off-gap; }
+  else { T0=Math.min.apply(0,Q.map(function(c){return c[0].t;}));
+    Q.forEach(function(c,n){ var off=Math.round((c[0].t-T0)/S.bin); lanes.push({n:n,off:off}); total=Math.max(total,off+c.length); }); }
+  cur = {};
+  describe(); draw();
+}
+
+/* ---------- pitch ---------- */
+function closest(sc,r){ var best=sc[0]; sc.forEach(function(x){ if(Math.abs(Math.log(x/r))<Math.abs(Math.log(best/r))) best=x; }); return best; }
+function pool(s){ var sc=SCALES[S.scale], fifth=closest(sc,1.5);
+  if(s==="D") return [1,fifth];
+  if(s==="C") return [1,closest(sc,1.25),fifth,2];
+  if(s==="R") return sc.concat([2]);
+  return [fifth,2]; }
+function baseHz(){ return 77.782*Math.pow(2,S.rootOct-2); }
+function pitch(s,t,n){ var p=pool(s), w=(Math.sin(2*Math.PI*t/90+n*1.3)+1)/2;
+  return baseHz()*Math.pow(2,STAGE[s].reg)*p[Math.round(w*(p.length-1))]; }
+function noteName(f){ var semis=Math.round(12*Math.log(f/77.782)/Math.LN2), oct=2+Math.floor((semis+3)/12);
+  return NAMES[((semis%12)+12)%12]+oct; }
+function clock(t){ var m=((21*60+Math.round(t))%1440+1440)%1440, h=Math.floor(m/60), mm=m%60;
+  return ((h+11)%12+1)+":"+(mm<10?"0":"")+mm+(h<12?" AM":" PM"); }
+function dur(min){ min=Math.round(min); return Math.floor(min/60)+"h "+(min%60)+"m"; }
+
+/* ---------- audio ---------- */
+var ctx=null, out, bus, wet, dry, droneG, droneLP, dOsc=[], waves={}, noiseBuf;
+function initAudio(){
+  var AC = window.AudioContext||window.webkitAudioContext; ctx=new AC();
+  out=ctx.createGain(); out.gain.value=0;
+  var comp=ctx.createDynamicsCompressor(); comp.threshold.value=-18; comp.ratio.value=3;
+  out.connect(comp); comp.connect(ctx.destination);
+  bus=ctx.createGain(); dry=ctx.createGain(); wet=ctx.createGain();
+  var conv=ctx.createConvolver(), len=Math.floor(ctx.sampleRate*3.4), ir=ctx.createBuffer(2,len,ctx.sampleRate);
+  for(var c=0;c<2;c++){ var d=ir.getChannelData(c); for(var i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6); }
+  conv.buffer=ir;
+  bus.connect(dry); dry.connect(out); bus.connect(conv); conv.connect(wet); wet.connect(out);
+  function wave(amps){ var re=new Float32Array(amps.length+1), im=new Float32Array(amps.length+1);
+    amps.forEach(function(a,i){ im[i+1]=a; }); return ctx.createPeriodicWave(re,im); }
+  waves.pure=wave([1,.28,.1,.03]); waves.reed=wave([1,.5,.34,.2,.14,.08,.05]); waves.hollow=wave([1,0,.32,0,.14,0,.06]);
+  waves.drone=wave([1,.6,.38,.16,.06]);
+  noiseBuf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);
+  var nd=noiseBuf.getChannelData(0); for(var j=0;j<nd.length;j++) nd[j]=Math.random()*2-1;
+  droneG=ctx.createGain(); droneG.gain.value=0; droneLP=ctx.createBiquadFilter(); droneLP.type="lowpass"; droneLP.frequency.value=700;
+  droneLP.connect(droneG); droneG.connect(bus);
+  [1,1.5].forEach(function(r,i){ var o=ctx.createOscillator(), g=ctx.createGain();
+    o.setPeriodicWave(waves.drone); g.gain.value=i?0.3:1; o.connect(g); g.connect(droneLP); o.start(); dOsc.push({o:o,r:r}); });
+  var lfo=ctx.createOscillator(), lg=ctx.createGain(); lfo.frequency.value=.07; lg.gain.value=120; lfo.connect(lg); lg.connect(droneLP.frequency); lfo.start();
+  applySound();
+}
+function applySound(){
+  if(!ctx) return; var t=ctx.currentTime;
+  wet.gain.setTargetAtTime(S.verb*.9,t,.1); dry.gain.setTargetAtTime(1-S.verb*.45,t,.1);
+  var fifth=closest(SCALES[S.scale],1.5);
+  dOsc.forEach(function(d,i){ d.o.frequency.setTargetAtTime(baseHz()*(i?fifth:1),t,.3); });
+}
+function setDrone(mult,t){ if(ctx) droneG.gain.setTargetAtTime(S.drone*.16*mult,t,1.2); }
+function tone(f,t,d,level,pan,bright){
+  var o=ctx.createOscillator(), lp=ctx.createBiquadFilter(), g=ctx.createGain(), p=panner(pan);
+  o.setPeriodicWave(waves[S.timbre]); o.frequency.value=f; lp.type="lowpass"; lp.frequency.value=bright;
+  var a=Math.min(1.2,Math.max(.08,d*.35)), hold=Math.max(a,d), r=Math.min(1.1,.35+d*.15);
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(level,t+a); g.gain.setValueAtTime(level,t+hold); g.gain.setTargetAtTime(0,t+hold,r);
+  o.connect(lp); lp.connect(g); g.connect(p); p.connect(bus); o.start(t); o.stop(t+hold+r*7);
+}
+function bell(f,t,level,pan){
+  var p=panner(pan); p.connect(bus);
+  [[1,1,3.2],[2.76,.3,1.6],[5.4,.1,.8]].forEach(function(x){ var o=ctx.createOscillator(), g=ctx.createGain();
+    o.type="sine"; o.frequency.value=f*x[0];
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(level*x[1],t+.015); g.gain.exponentialRampToValueAtTime(.0001,t+x[2]);
+    o.connect(g); g.connect(p); o.start(t); o.stop(t+x[2]+.1); });
+}
+function breath(t,d,level,pan){
+  var src=ctx.createBufferSource(), bp=ctx.createBiquadFilter(), g=ctx.createGain(), p=panner(pan);
+  src.buffer=noiseBuf; src.loop=true; bp.type="bandpass"; bp.frequency.value=900; bp.Q.value=.7;
+  var len=Math.max(1.2,d);
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(level*.5,t+len*.45); g.gain.linearRampToValueAtTime(0,t+len);
+  src.connect(bp); bp.connect(g); g.connect(p); p.connect(bus); src.start(t); src.stop(t+len+.1);
+}
+function panner(v){ if(ctx.createStereoPanner){ var p=ctx.createStereoPanner(); p.pan.value=v; return p; } return ctx.createGain(); }
+
+/* ---------- sequencer ---------- */
+var playing=false, timer=null, g=0, nextT=0, queue=[], cur={}, raf=0, endTimer=null;
+function scheduleStep(gi,T){
+  var hit={};
+  lanes.forEach(function(L){
+    var cells=Q[L.n], k=gi-L.off; if(k<0||k>=cells.length) return;
+    var s=cells[k].s, k0=k, k1=k+1;
+    while(k0>0&&cells[k0-1].s===s) k0--;
+    while(k1<cells.length&&cells[k1].s===s) k1++;
+    if(k===0 && S.mode!=="choir") setDrone(S.trend ? .6+.7*deepN[L.n] : 1, T);
+    var mv=STAGE[s].motion, R = mv===0 ? Infinity : mv<0 ? 1 : Math.max(1,Math.round(mv/S.bin)), j=k-k0;
+    var f=pitch(s,cells[k].t,L.n);
+    hit[L.n]={k:k,s:s,t:cells[k].t,f:null};
+    if(!(R===Infinity ? j===0 : j%R===0)) return;
+    var steps=Math.min(R,k1-k), d=steps*S.step;
+    var choir=S.mode==="choir", pan=choir ? (L.n-3)/3*.7 : 0;
+    var level=STAGE[s].level*(choir?.1:.2)/(1+.3*STAGE[s].reg);
+    var bright=S.bright*(S.trend ? .6+.8*remN[L.n] : 1);
+    hit[L.n].f=f;
+    if(s==="A"){
+      if(S.awakeMode==="bell") bell(f,T,level*1.2,pan);
+      else if(S.awakeMode==="breath") breath(T,d,level*1.6,pan);
+      else hit[L.n].f=null;
+    } else tone(f,T,d,level,pan,bright);
+  });
+  queue.push({g:gi,t:T,hit:hit});
+}
+function tick(){
+  while(nextT < ctx.currentTime+.12){
+    if(g>=total){
+      if(S.loop){ g=0; nextT+=S.step*2; }
+      else { clearInterval(timer); timer=null; endTimer=setTimeout(function(){ stop(true); }, Math.max(0,(nextT-ctx.currentTime))*1000+600); return; }
+    }
+    scheduleStep(g,nextT); g++; nextT+=S.step;
+  }
+}
+function start(){
+  if(!ctx) initAudio();
+  if(ctx.state==="suspended") ctx.resume();
+  clearTimeout(endTimer); if(timer) clearInterval(timer);
+  playing=true; g=0; queue=[]; cur={}; nextT=ctx.currentTime+.15;
+  out.gain.cancelScheduledValues(ctx.currentTime); out.gain.setTargetAtTime(.9,ctx.currentTime,.15);
+  setDrone(1,ctx.currentTime);
+  timer=setInterval(tick,30); tick();
+  $("play").textContent="Stop"; cancelAnimationFrame(raf); frame();
+}
+function stop(natural){
+  playing=false; clearTimeout(endTimer); if(timer){ clearInterval(timer); timer=null; }
+  if(ctx){ var t=ctx.currentTime; out.gain.setTargetAtTime(0,t,natural?1.2:.25); droneG.gain.setTargetAtTime(0,t,natural?1.5:.3); }
+  $("play").textContent="Play"; queue=[]; cur={};
+  $("nowSub").textContent=natural?"Finished":"Stopped"; draw();
+}
+function restartIfPlaying(){ if(playing) start(); }
+var last={};
+function frame(){
+  if(!playing) return;
+  var now=ctx.currentTime, changed=false;
+  while(queue.length && queue[0].t<=now){ cur=queue.shift().hit; changed=true; }
+  if(changed){
+    var ks=Object.keys(cur);
+    if(ks.length){
+      ks.forEach(function(n){ if(cur[n].f) last[n]=noteName(cur[n].f); });
+      if(S.mode==="choir"){ $("nowNote").textContent=ks.map(function(n){ return last[n]||"·"; }).join(" ");
+        $("nowSub").textContent=clock(cur[ks[0]].t)+" · "+ks.length+" voices asleep"; }
+      else { var c=cur[ks[0]]; $("nowNote").textContent=(last[ks[0]]||"·")+" · "+STAGE[c.s].name;
+        $("nowSub").textContent="Night "+(+ks[0]+1)+" · "+clock(c.t); }
+    }
+    draw();
+  }
+  raf=requestAnimationFrame(frame);
+}
+
+/* ---------- chart ---------- */
+var cv=$("chart"), c2=cv.getContext("2d"), AX=46, TA=30, TB=562;
+function draw(){
+  var dpr=window.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight;
+  if(cv.width!==Math.round(W*dpr)){ cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); }
+  c2.setTransform(dpr,0,0,dpr,0,0); c2.clearRect(0,0,W,H);
+  var cw=(W-AX)/7, pad=8;
+  function Y(t){ return pad+(t-TA)/(TB-TA)*(H-pad*2); }
+  c2.font="12px Figtree, system-ui, sans-serif"; c2.textBaseline="middle";
+  for(var t=60;t<=540;t+=60){ c2.strokeStyle="#232842"; c2.lineWidth=1; c2.beginPath(); c2.moveTo(0,Y(t)+.5); c2.lineTo(W-AX+4,Y(t)+.5); c2.stroke();
+    if(t%120===60){ c2.fillStyle="#9296b4"; c2.fillText(clock(t).replace(":00",""),W-AX+8,Y(t)); } }
+  Q.forEach(function(cells,n){
+    var x=n*cw+cw*.14, w=cw*.72, active = S.mode!=="night" || n===S.night;
+    cells.forEach(function(cell,k){
+      var y0=Y(cell.t), y1=Y(cell.t+S.bin), gap=(y1-y0)>4?1:0;
+      c2.globalAlpha=active?1:.28; c2.fillStyle=STAGE[cell.s].color; c2.fillRect(x,y0,w,y1-y0-gap);
+      if(cur[n] && cur[n].k===k){ c2.globalAlpha=1; c2.strokeStyle="#f3d9a4"; c2.lineWidth=2; c2.strokeRect(x-2,y0-1,w+4,y1-y0-gap+2); }
+    });
+    c2.globalAlpha=1;
+  });
+  if(S.mode==="choir"){ var ks=Object.keys(cur); if(ks.length){ var yy=Y(cur[ks[0]].t+S.bin/2); c2.strokeStyle="rgba(243,217,164,.5)"; c2.lineWidth=1; c2.beginPath(); c2.moveTo(0,yy); c2.lineTo(W-AX,yy); c2.stroke(); } }
+}
+cv.addEventListener("click",function(e){ var r=cv.getBoundingClientRect(), n=Math.floor((e.clientX-r.left)/((r.width-AX)/7)); if(n>=0&&n<7) pickNight(n); });
+window.addEventListener("resize",draw);
+
+/* ---------- UI ---------- */
+function $(id){ return document.getElementById(id); }
+function pickNight(n){ S.night=n; if(S.mode!=="night") setMode("night"); else { build(); restartIfPlaying(); } }
+function setMode(m){ S.mode=m; ["night","journey","choir"].forEach(function(x){ $("m-"+x).setAttribute("aria-pressed", x===m); }); build(); restartIfPlaying(); }
+function describe(){
+  var secs=total*S.step, mm=Math.floor(secs/60), ss=Math.round(secs%60), len=mm+":"+(ss<10?"0":"")+ss;
+  var txt={night:"One voice follows night "+(S.night+1)+" from lights out to waking.",
+           journey:"All seven nights in order, with a short pause for each day between.",
+           choir:"Seven voices at once, lined up by the clock. The chord shifts as each night changes stage."}[S.mode];
+  $("modeNote").textContent=txt+" "+total+" steps, "+len+" at this speed.";
+  Array.prototype.forEach.call($("nights").children,function(b,i){ b.setAttribute("aria-pressed", S.mode==="night"&&i===S.night); });
+  var n=nights[S.night], pct=function(x){ return Math.round(x*100)+"%"; };
+  var dv=nights.map(function(x){return x.deep;}), rv=nights.map(function(x){return x.rem;});
+  $("stats").innerHTML = S.mode==="night"
+    ? "<strong>Night "+(S.night+1)+"</strong> · "+clock(n.start)+" to "+clock(n.end)+" · asleep "+dur(n.asleep)+" · deep "+pct(n.deep)+" · REM "+pct(n.rem)+" · awake "+Math.round(n.tot.A)+" min"
+    : "<strong>Week</strong> · deep runs "+pct(Math.min.apply(0,dv))+" to "+pct(Math.max.apply(0,dv))+" of sleep · REM "+pct(Math.min.apply(0,rv))+" to "+pct(Math.max.apply(0,rv))+" · most awake on night "+(nights.map(function(x){return x.tot.A;}).reduce(function(b,v,i,a){return v>a[b]?i:b;},0)+1);
+  $("stepLenO").textContent=S.step.toFixed(2)+" s"; $("brightO").textContent=S.bright+" Hz";
+  $("droneO").textContent=Math.round(S.drone*100)+"%"; $("verbO").textContent=Math.round(S.verb*100)+"%";
+  ORDER.forEach(function(k){ var e=$("rng-"+k); if(e){ var p=pool(k), b=baseHz()*Math.pow(2,STAGE[k].reg);
+    e.textContent=p.map(function(r){return noteName(b*r);}).filter(function(v,i,a){return a.indexOf(v)===i;}).join(" "); } });
+}
+for(var i=0;i<7;i++){ (function(i){ var b=document.createElement("button"); b.type="button"; b.id="night-"+i; b.textContent=i+1;
+  b.setAttribute("aria-label","Night "+(i+1)); b.addEventListener("click",function(){ pickNight(i); }); $("nights").appendChild(b); })(i); }
+Array.prototype.forEach.call(document.querySelectorAll(".seg button"),function(b){ b.addEventListener("click",function(){ setMode(b.dataset.mode); }); });
+$("play").addEventListener("click",function(){ try{ playing ? stop(false) : start(); }catch(err){ $("nowSub").textContent="Audio could not start in this browser."; } });
+
+function bind(id,key,num,rebuild){ $(id).addEventListener("input",function(){ var el=$(id);
+  S[key] = el.type==="checkbox" ? el.checked : num ? +el.value : el.value;
+  if(rebuild){ build(); restartIfPlaying(); } else { describe(); applySound(); if(key==="drone"&&playing) setDrone(1,ctx.currentTime); } }); }
+bind("bin","bin",true,true); bind("rule","rule",false,true);
+bind("awakeMode","awakeMode"); bind("stepLen","step",true); bind("trend","trend"); bind("loop","loop");
+bind("scale","scale"); bind("rootOct","rootOct",true); bind("timbre","timbre"); bind("bright","bright",true); bind("drone","drone",true); bind("verb","verb",true);
+
+ORDER.forEach(function(k){
+  var st=STAGE[k], d=document.createElement("div"); d.className="stage";
+  var regs=[0,1,2,3].map(function(o){ return '<option value="'+o+'"'+(o===st.reg?" selected":"")+'>'+["Low","Mid","High","Top"][o]+'</option>'; }).join("");
+  var mots=[[0,"On entry, then hold"],[60,"Every 60 min"],[30,"Every 30 min"],[15,"Every 15 min"],[-1,"Every step"]]
+    .map(function(m){ return '<option value="'+m[0]+'"'+(m[0]===st.motion?" selected":"")+'>'+m[1]+'</option>'; }).join("");
+  d.innerHTML='<header><span class="sw" style="background:'+st.color+'"></span>'+st.name+'<span class="n" id="rng-'+k+'"></span></header>'+
+    '<div class="three">'+
+    '<label class="f" for="reg-'+k+'">Register<select id="reg-'+k+'">'+regs+'</select></label>'+
+    '<label class="f" for="mot-'+k+'">New note<select id="mot-'+k+'">'+mots+'</select></label>'+
+    '<label class="f" for="lvl-'+k+'">Level<input type="range" id="lvl-'+k+'" min="0" max="1" step="0.01" value="'+st.level+'"></label></div>';
+  $("stages").appendChild(d);
+  $("reg-"+k).addEventListener("input",function(){ st.reg=+this.value; describe(); });
+  $("mot-"+k).addEventListener("input",function(){ st.motion=+this.value; });
+  $("lvl-"+k).addEventListener("input",function(){ st.level=+this.value; });
+});
+
+build();
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(draw);
+})();
+</script>
+</body>
+</html>
